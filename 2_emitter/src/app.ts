@@ -1,16 +1,15 @@
 import {createServer, type IncomingMessage} from "node:http";
-import {addUser, getAllUsers, type User} from "./model/users.js";
+import {addUser, deleteUser, getAllUsers, getUser, updateUser, type User} from "./model/users.js";
 import {emitter} from "./events/emitter.js";
 
 
 /*
-GET/ -> Hello
-GET/api/users               ->  list of users
-POST/api/users              ->  add user to list of users
-DELETE/api/users            ->  delete user by id from list of users
-PUT/api/users               ->  update user by id
-
-GET/api/users?userId=<num>  ->  user by id
+done | GET/ -> Hello
+done | GET/api/users               ->  list of users
+done | POST/api/users              ->  add user to list of users
+done | DELETE/api/users            ->  delete user by id from list of users
+done | PUT/api/users               ->  update user by id
+done | GET/api/users?userId=<num>  ->  user by id
  */
 
 const PORT = 3005;
@@ -22,7 +21,7 @@ async function parseBody(req: IncomingMessage) {
             body += chunk.toString();
         })
         req.on("end", () => {
-            if(!body) return resolve({});
+            if (!body) return resolve({});
             try {
                 const parsed = JSON.parse(body);
                 resolve(parsed);
@@ -41,24 +40,37 @@ const myServer = createServer(
         const {url, method} = req;
         console.log("Request:", JSON.stringify(url), method);
 
-        const parsedUrl = new URL(url??"/", "http://localhost:" + PORT);
+        const parsedUrl = new URL(url ?? "/", "http://localhost:" + PORT);
         const pathname = parsedUrl.pathname;
         const userIdParam = parsedUrl.searchParams.get("userId");
 
         try {
+            // HELLO
             if (pathname === "/" && method === "GET") {
                 res.writeHead(200, {"Content-Type": "text/html"});
                 res.end("Hellow mawafawka");
                 return;
             }
+            // GET ALL USERS OR BY ID
             if (pathname === "/api/users" && method === "GET") {
                 if (!userIdParam) {
                     const users = getAllUsers();
                     res.writeHead(200, {"Content-Type": "application/json"});
                     res.end(JSON.stringify(users));
-                    return;
+                } else {
+                    const id = Number(userIdParam);
+                    const user = await getUser(id);
+                    if (user) {
+                        res.writeHead(200, {"Content-Type": "application/json"});
+                        res.end(JSON.stringify(user));
+                    } else {
+                        res.writeHead(404, {"Content-Type": "text/html"});
+                        res.end("User not found!");
+                    }
                 }
+                return;
             }
+            // ADD USER
             if (pathname === "/api/users" && method === "POST") {
                 const body = (await parseBody(req)) as User;
                 const isSuccess = await addUser(body);
@@ -69,6 +81,34 @@ const myServer = createServer(
                 } else {
                     res.writeHead(409, {"Content-Type": "text/html"});
                     res.end("User already exists!");
+                }
+                return;
+            }
+            // DELETE USER BY ID
+            if (pathname === "/api/users" && method === "DELETE") {
+                const id = (await parseBody(req)) as number;
+                const deletedUser = await deleteUser(id);
+                if (deletedUser) {
+                    res.writeHead(200, {"Content-Type": "text/html"});
+                    res.end("User was deleted successfully!");
+                    emitter.emit("userDeleted");
+                } else {
+                    res.writeHead(409, {"Content-Type": "text/html"});
+                    res.end("User doesn't exist!");
+                }
+                return;
+            }
+            // UPDATE USER BY ID
+            if (pathname === "/api/users" && method === "PUT") {
+                const body = (await parseBody(req)) as User;
+                const updatedUser = await updateUser(body.id, body); // id probably should be passed as separate value? Or as querry?
+                if (updatedUser) {
+                    res.writeHead(200, {"Content-Type": "text/html"});
+                    res.end("User updated successfully!");
+                    emitter.emit("userUpdated");
+                } else {
+                    res.writeHead(409, {"Content-Type": "text/html"});
+                    res.end("User doesn't exist!");
                 }
                 return;
             }
