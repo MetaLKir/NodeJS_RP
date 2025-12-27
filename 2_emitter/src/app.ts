@@ -59,7 +59,7 @@ const myServer = createServer(
                     res.end(JSON.stringify(users));
                 } else {
                     const id = Number(userIdParam);
-                    const user = await getUser(id);
+                    const user = getUser(id);
                     if (user) {
                         res.writeHead(200, {"Content-Type": "application/json"});
                         res.end(JSON.stringify(user));
@@ -104,8 +104,8 @@ const myServer = createServer(
             }
             // UPDATE USER BY ID
             if (pathname === "/api/users" && method === "PUT") {
-                const body = (await parseBody(req)) as User;
-                const updatedUser = updateUser(body);
+                const body = (await parseBody(req)) as { id: number, user: User };
+                const updatedUser = updateUser(body.id, body.user);
                 if (updatedUser) {
                     res.writeHead(200, {"Content-Type": "text/html"});
                     res.end("User updated successfully!");

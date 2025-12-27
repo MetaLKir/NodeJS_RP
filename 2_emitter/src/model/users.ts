@@ -1,11 +1,12 @@
 export type User = {
     id: number;
     username: string;
+    testParam?: string;
 }
 
 let users: User[] = [
-    {id: 1, username: "admin"},
-    {id: 2, username: "uborschik"},
+    {id: 1, username: "admin", testParam: "test1"},
+    {id: 2, username: "uborschik", testParam: "test2"},
 ]
 
 export const getAllUsers = () => [...users];
@@ -25,20 +26,12 @@ export const deleteUser = (id: number) => {
     return user;
 }
 
-// export const updateUser = (id: number, data: Partial<Omit<User, "id">>) => {
-//     const index = users.findIndex(u => u.id === id);
-//     if (index === -1) return null;
-//     const user = users[index] as User; // it thinks here could be "undefined", so added "as User"
-//
-//     users[index] = {...user, ...data};
-//     return users[index];
-// };
-
-export const updateUser = (userUpdated: User) => {
-    if (!userUpdated) return null;
-    const index = users.findIndex(user => user.id === userUpdated.id);
+export const updateUser = (id: number, data: Partial<Omit<User, "id">>) => {
+    const index = users.findIndex(u => u.id === id);
     if (index === -1) return null;
-    users[index] = userUpdated;
+    const user = users[index] as User; // it thinks here could be "undefined", so added "as User"
+
+    users[index] = {...user, ...data};
     return users[index];
 };
 
