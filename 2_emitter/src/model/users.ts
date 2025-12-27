@@ -25,12 +25,20 @@ export const deleteUser = (id: number) => {
     return user;
 }
 
-export const updateUser = (id: number, data: Partial<Omit<User, "id">>) => {
-    const index = users.findIndex(u => u.id === id);
-    if (index === -1) return null;
-    const user = users[index] as User; // it thinks here could be "undefined", so added "as User"
+// export const updateUser = (id: number, data: Partial<Omit<User, "id">>) => {
+//     const index = users.findIndex(u => u.id === id);
+//     if (index === -1) return null;
+//     const user = users[index] as User; // it thinks here could be "undefined", so added "as User"
+//
+//     users[index] = {...user, ...data};
+//     return users[index];
+// };
 
-    users[index] = {...user, ...data};
+export const updateUser = (userUpdated: User) => {
+    if (!userUpdated) return null;
+    const index = users.findIndex(user => user.id === userUpdated.id);
+    if (index === -1) return null;
+    users[index] = userUpdated;
     return users[index];
 };
 

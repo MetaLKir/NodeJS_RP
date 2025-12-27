@@ -73,7 +73,7 @@ const myServer = createServer(
             // ADD USER
             if (pathname === "/api/users" && method === "POST") {
                 const body = (await parseBody(req)) as User;
-                const isSuccess = await addUser(body);
+                const isSuccess = addUser(body);
                 if (isSuccess) {
                     res.writeHead(200, {"Content-Type": "text/html"});
                     res.end("User was added successfully!");
@@ -86,8 +86,13 @@ const myServer = createServer(
             }
             // DELETE USER BY ID
             if (pathname === "/api/users" && method === "DELETE") {
-                const id = (await parseBody(req)) as number;
-                const deletedUser = await deleteUser(id);
+                let deletedUser;
+                if (userIdParam) {
+                    deletedUser = deleteUser(Number(userIdParam));
+                } else {
+                    const {id} = await parseBody(req) as {id: number};
+                    deletedUser = deleteUser(id);
+                }
                 if (deletedUser) {
                     res.writeHead(200, {"Content-Type": "text/html"});
                     res.end("User was deleted successfully!");
@@ -96,12 +101,11 @@ const myServer = createServer(
                     res.writeHead(409, {"Content-Type": "text/html"});
                     res.end("User doesn't exist!");
                 }
-                return;
             }
             // UPDATE USER BY ID
             if (pathname === "/api/users" && method === "PUT") {
                 const body = (await parseBody(req)) as User;
-                const updatedUser = await updateUser(body.id, body); // id probably should be passed as separate value? Or as querry?
+                const updatedUser = updateUser(body);
                 if (updatedUser) {
                     res.writeHead(200, {"Content-Type": "text/html"});
                     res.end("User updated successfully!");
