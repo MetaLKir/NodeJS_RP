@@ -1,0 +1,7 @@
+2025-12-28T20:04:47.954Z__userCreated__ {"id":3,"username":"Bibi"}
+2025-12-28T20:06:25.789Z__userUpdated__ {"id":1,"username":"King-Lord","testParam":"test1"}
+2025-12-28T20:06:28.457Z__userUpdated__ {"id":1,"username":"King-Lord","testParam":"test1"}
+2025-12-28T20:06:53.560Z__userDeleted__ {"id":2,"username":"uborschik","testParam":"test2"}
+2025-12-28T20:07:17.746Z__userDeleted__ {"id":1,"username":"King-Lord","testParam":"test1"}
+2025-12-28T20:11:30.412Z__userDeleted__ {"id":2,"username":"uborschik","testParam":"test2"}
+2025-12-28T20:11:36.296Z__userDeleted__ {"id":1,"username":"admin","testParam":"test1"}

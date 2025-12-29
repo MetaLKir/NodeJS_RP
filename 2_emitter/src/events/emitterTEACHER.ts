@@ -5,8 +5,9 @@ import type {User} from "../model/usersTEACHER.js";
 
 export const emitter = new EventEmitter();
 
-const LOG_DIR = path.resolve(process.cwd(), "logs"); // create directory
-const ACTION_LOG = path.join(LOG_DIR, "actions.logs"); // create file in directory
+const LOG_DIR = path.resolve(process.cwd(), "logs");
+
+const ACTION_LOG = path.join(LOG_DIR, "actions.logs");
 const ERROR_LOG = path.join(LOG_DIR, "errors.logs");
 const REQUEST_LOG = path.join(LOG_DIR, "request.logs");
 
@@ -20,74 +21,69 @@ function safeJson(payload: unknown) {
     try {
         return JSON.stringify(payload);
     } catch (e) {
-        return JSON.stringify("<unserializable payload>");
-        // return '"<unserializable payload>"';  // same as return above
+        return JSON.stringify("<unserilizable payload>");
     }
 }
 
 function normalizeError(error: unknown) {
     if (error instanceof Error) {
-        return {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        };
+        return {name: error.name, message: error.message, stack: error.stack};
     }
     return {message: String(error)};
 }
 
 function append(file: string, line: string) {
-    fs.appendFile(
-        file,
-        line.endsWith("\n") ? line : line + "\n",
-        "utf8", e => {
+    fs.appendFile(file, line.endsWith("\n") ? line : line + "\n",
+        "utf8", (e) => {
             if (e) console.error("Failed to append file: " + e);
-        }
-    );
+        });
 }
 
 function logLine(file: string, event: string, payload?: unknown) {
-    append(
-        file,
+    append(file,
         `${nowIso()}__${event}__${payload === undefined ? "" : " " + safeJson(payload)}`,
     )
 }
 
 emitter.on("userCreated", (user: User) => {
-    console.log("User created");
-    logLine(ACTION_LOG, "userCreated", user);
+    console.log("userCreated");
+    logLine(ACTION_LOG, 'userCreated', user);
+})
+// Событие: пользователь обновлён
+emitter.on("userUpdated", (user:User) => {
+    console.log("[EVENT] userUpdated");
+    logLine(ACTION_LOG, 'userUpdated', user);
+
 });
 
-emitter.on("userDeleted", (user: User) => {
-    console.log("User deleted");
-    logLine(ACTION_LOG, "userDeleted", user);
+// Событие: пользователь удалён
+emitter.on("userDeleted", (user:User) => {
+    console.log("[EVENT] userDeleted");
+    logLine(ACTION_LOG, 'userDeleted', user);
 });
 
-emitter.on("userUpdated", (user: User) => {
-    console.log("User updated");
-    logLine(ACTION_LOG, "userUpdated", user);
-});
+emitter.on("requestIssue", (payload:unknown) => {
+    //400 404 409
+    logLine(REQUEST_LOG, 'requestIssue', payload);
 
-emitter.on("requestIssue", (payload: unknown) => {
-    // 400 404 409
-    logLine(REQUEST_LOG, "requestIssue", payload);
 })
 
 // errors
-emitter.on("error", (payload: unknown) => {
-    // 400 404 409
-    logLine(ERROR_LOG, "error", payload);
+emitter.on("error", (payload:unknown) => {
+    //400 404 409
+    logLine(ERROR_LOG, 'error', payload);
+
 })
 
 process.on("unhandledRejection", (reason: unknown) => {
-    emitter.emit("error", {
+    emitter.emit("error",{
         type: "unhandledRejection",
         reason: normalizeError(reason),
     })
 })
 
 process.on("uncaughtException", (reason: unknown) => {
-    emitter.emit("error", {
+    emitter.emit("error",{
         type: "uncaughtException",
         reason: normalizeError(reason),
     })

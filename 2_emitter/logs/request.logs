@@ -1,0 +1,2 @@
+2025-12-28T20:04:52.179Z__requestIssue__ {"url":"/api/users","method":"POST","pathname":"/api/users","userIdParam":null,"body":{"id":3,"username":"Bibi"},"status":409,"response":"User already exist"}
+2025-12-28T20:07:23.902Z__requestIssue__ {"url":"/api/users?userId=1","method":"GET","pathname":"/api/users","userIdParam":"1","status":404,"response":"User not found"}
