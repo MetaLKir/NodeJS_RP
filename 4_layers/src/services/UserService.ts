@@ -1,20 +1,22 @@
 import type {User} from "../model/users.js";
-import {addUser, getAllUsers, getUserById, removeUser, updateUser} from "../model/userRepository.js";
+import type {UserRepository} from "../repositories/UserRepository.js";
 
 export class UserService {
+    constructor(private repo: UserRepository) {}
+
     getAll(): User[] {
-        return getAllUsers();
+        return this.repo.getAll();
     }
     getById(id: number) {
-        return getUserById(id);
+        return this.repo.getById(id);
     }
     create(user: User) {
-        return addUser(user);
+        return this.repo.create(user);
     }
     deleteById(id: number) {
-        return removeUser(id);
+        return this.repo.deleteById(id);
     }
     update(user: User) {
-        return updateUser(user);
+        return this.repo.update(user);
     }
 }

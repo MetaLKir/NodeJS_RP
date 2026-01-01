@@ -11,25 +11,30 @@ event logger
 
  */
 
-import {UserServiceEmbeddedImpl} from "./services/UserServiceEmbeddedImpl.js";
+import {UserRepository} from "./repositories/UserRepository.js";
 import {emitter} from "./events/emitter.js";
 import {UserController} from "./controllers/UserController.js";
 import {createServer} from "node:http";
 import {PORT, SOCKET} from "./config/userConfig.js";
 import {userRoutes} from "./routes/userRoutes.js";
+import {registerLogger} from "./events/logger.js";
+import {registerProcessErrorHandler} from "./events/processError.js";
+import {UserService} from "./services/UserService.js";
 
 export function launchServer() {
-    const userService = new UserServiceEmbeddedImpl();
+    registerLogger();
+    registerProcessErrorHandler();
 
-    try {
-        userService.restoreDataFromFile();
-    } catch (e) {
-        emitter.emit("error", {
-            type: "restoreDataFromFileError",
-            error: e instanceof Error ? {name: e.name, message: e.message, stack: e.stack} : {message: String(e)},
-        });
+    const repo = new UserRepository();
+    const restoreNew = repo.restore();
+    emitter.emit("appRestore", {restoreNew});
+    if(restoreNew.toLowerCase().includes("error")  ||
+    restoreNew.toLowerCase().includes("invalid")) {
+        emitter.emit("error", {type: "repoRestoreError", restoreNew});
     }
-    const userController = new UserController(userService);
+    const service = new UserService(repo);
+
+    const userController = new UserController(service);
     const server = createServer(
         async (req, res) => {
             const {url, method} = req;
@@ -58,7 +63,7 @@ export function launchServer() {
     const shutdown = (signal: "SIGINT" | "SIGTERM") => {
 
         try {
-            userService.saveDataToFile?.();
+            repo.save();
         } catch (e) {
             emitter.emit("error", {
                 type: "saveDataToFileError",
